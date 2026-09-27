@@ -310,6 +310,8 @@ def load_history(path: str | Path) -> dict[str, list[float]]:
 def plot_learning_curves(
     history: dict[str, list[float]],
     output_path: str | Path,
+    *,
+    best_epoch: int | None = None,
 ) -> None:
     required = {"loss", "val_loss", "accuracy", "val_accuracy"}
     missing = sorted(required - set(history))
@@ -317,10 +319,19 @@ def plot_learning_curves(
         raise ValueError(f"Training history is missing keys: {missing}")
 
     epochs = np.arange(1, len(history["loss"]) + 1)
+    if best_epoch is None:
+        best_epoch = int(np.argmin(history["val_loss"])) + 1
+
     fig, axes = plt.subplots(1, 2, figsize=(12, 5))
 
     axes[0].plot(epochs, history["accuracy"], label="train")
     axes[0].plot(epochs, history["val_accuracy"], label="validation")
+    axes[0].axvline(
+        best_epoch,
+        linestyle="--",
+        linewidth=1.0,
+        label=f"best val_loss: epoch {best_epoch}",
+    )
     axes[0].set_title("Accuracy")
     axes[0].set_xlabel("Epoch")
     axes[0].set_ylabel("Accuracy")
@@ -329,6 +340,12 @@ def plot_learning_curves(
 
     axes[1].plot(epochs, history["loss"], label="train")
     axes[1].plot(epochs, history["val_loss"], label="validation")
+    axes[1].axvline(
+        best_epoch,
+        linestyle="--",
+        linewidth=1.0,
+        label=f"best val_loss: epoch {best_epoch}",
+    )
     axes[1].set_title("Loss")
     axes[1].set_xlabel("Epoch")
     axes[1].set_ylabel("Loss")
