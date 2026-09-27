@@ -462,7 +462,7 @@ def open_capture(source: int | str | Path) -> OpenedCapture:
             capture.release()
         raise OSError(f"Unable to open webcam device {source}")
 
-    path = Path(source)
+    path = materialize_chunked_file(Path(source))
     if not path.is_file():
         raise FileNotFoundError(f"Video file not found: {path}")
     capture = cv2.VideoCapture(str(path))
@@ -470,6 +470,34 @@ def open_capture(source: int | str | Path) -> OpenedCapture:
         capture.release()
         raise OSError(f"Unable to open video file: {path}")
     return OpenedCapture(capture, None, None)
+
+
+def materialize_chunked_file(path: str | Path) -> Path:
+    """Reassemble <name>.partNNN files when the original large file is absent."""
+    path = Path(path)
+    if path.is_file():
+        return path
+
+    parts = sorted(path.parent.glob(path.name + ".part[0-9][0-9][0-9]"))
+    if not parts:
+        return path
+
+    temp = path.with_name(path.name + ".rebuilding")
+    print(f"Reassembling {path.name} from {len(parts)} repository chunks ...")
+    try:
+        with temp.open("wb") as target:
+            for part in parts:
+                with part.open("rb") as source:
+                    while True:
+                        block = source.read(1024 * 1024)
+                        if not block:
+                            break
+                        target.write(block)
+        temp.replace(path)
+    except Exception:
+        temp.unlink(missing_ok=True)
+        raise
+    return path
 
 
 def parse_source(value: str) -> int | str:
