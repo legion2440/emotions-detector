@@ -15,3 +15,10 @@ data/*.zip
 
 results/tensorboard/*
 !results/tensorboard/.gitkeep
+
+# Large local artifacts (repository stores selected files as <name>.partNNN chunks)
+data/*.tar.gz
+/ptxas
+results/model/*.keras
+results/model/pretrained_stage*.keras
+results/preprocessing_test/input_video.mp4
