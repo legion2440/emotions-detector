@@ -11,6 +11,7 @@ from common import (
     benchmark_predict,
     configure_tensorflow_memory_growth,
     load_fer_csv,
+    materialize_chunked_file,
     resolve_labeled_test_csv,
 )
 
@@ -41,12 +42,13 @@ def main() -> None:
     x_test, y_test = load_fer_csv(test_path, require_labels=True)
     assert y_test is not None
 
-    if not args.model.is_file():
+    model_path = materialize_chunked_file(args.model)
+    if not model_path.is_file():
         raise FileNotFoundError(
-            f"Model not found: {args.model}. Train it with python ./scripts/train.py"
+            f"Model not found: {model_path}. Train it with python ./scripts/train.py"
         )
 
-    model = keras.models.load_model(args.model)
+    model = keras.models.load_model(model_path)
     probabilities = model.predict(x_test, batch_size=args.batch_size, verbose=0)
     predictions = np.argmax(probabilities, axis=1)
     accuracy = float(np.mean(predictions == y_test))
