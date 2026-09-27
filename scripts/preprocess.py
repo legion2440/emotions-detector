@@ -98,6 +98,7 @@ def main() -> None:
     frame_index = 0
     next_sample_time = 0.0
     saved = 0
+    last_elapsed = 0.0
 
     try:
         pending = first_frame
@@ -122,6 +123,7 @@ def main() -> None:
                     if timestamp_ms > 0
                     else frame_index / fps
                 )
+            last_elapsed = elapsed
 
             if not args.no_record_input and not copy_source:
                 if writer is None:
@@ -130,7 +132,11 @@ def main() -> None:
                     writer.write(frame)
 
             faces = detector.detect(frame)
-            if elapsed >= next_sample_time and faces:
+            if (
+                saved < args.target_count
+                and elapsed >= next_sample_time
+                and faces
+            ):
                 gray48, _ = preprocess_face(frame, faces[0])
                 output_path = args.output / f"image{saved}.png"
                 if not cv2.imwrite(str(output_path), gray48):
@@ -161,8 +167,8 @@ def main() -> None:
                 if cv2.waitKey(1) & 0xFF == ord("q"):
                     break
 
-            if saved >= args.target_count:
-                break
+            # Keep consuming/recording the stream for the full requested
+            # duration even if all audit crops were collected early.
             if elapsed >= args.duration:
                 break
     finally:
@@ -173,11 +179,18 @@ def main() -> None:
             cv2.destroyAllWindows()
 
     print(f"Preprocessed face crops saved: {saved}")
+    minimum_duration = args.duration - max(1.0 / fps, 0.05)
+    if last_elapsed < minimum_duration:
+        raise SystemExit(
+            f"Input stream was only {last_elapsed:.2f}s; "
+            f"at least {args.duration:.2f}s is required."
+        )
     if saved < args.target_count:
         raise SystemExit(
             f"Only {saved}/{args.target_count} face crops were collected. "
             "Use a longer video/duration or keep the face visible to the camera."
         )
+    print(f"Processed stream duration: {last_elapsed:.2f}s")
 
 
 if __name__ == "__main__":
