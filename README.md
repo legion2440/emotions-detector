@@ -287,13 +287,22 @@ Every crop is:
 
 ### Live inference
 
-Webcam:
+Default audit command:
+
+```bash
+python ./scripts/predict_live_stream.py
+```
+
+The script first tries webcam `0`. If the webcam is unavailable and
+`results/preprocessing_test/input_video.mp4` exists, it automatically switches to the recorded-video fallback.
+
+Explicit webcam:
 
 ```bash
 python ./scripts/predict_live_stream.py --source 0
 ```
 
-Recorded video:
+Explicit recorded video:
 
 ```bash
 python ./scripts/predict_live_stream.py \
@@ -430,9 +439,11 @@ python ./scripts/preprocess.py \
 Live stream test:
 
 ```bash
-python ./scripts/predict_live_stream.py \
-  --source results/preprocessing_test/input_video.mp4
+python ./scripts/predict_live_stream.py
 ```
+
+If webcam `0` is not available, the command automatically falls back to
+`results/preprocessing_test/input_video.mp4`.
 
 Optional transfer model:
 
