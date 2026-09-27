@@ -26,7 +26,7 @@ from common import (
 
 
 INPUT_SIZE = 128
-BACKBONE_NAME = "resnet50v2_backbone"
+BACKBONE_NAME = "resnet50v2"
 
 
 def build_transfer_callbacks(
