@@ -1,0 +1,10 @@
+Selected test index: 6174
+Original: Happy 99.9775%
+Target: Sad
+Adversarial: Sad 83.0382%
+Steps used: 3
+Epsilon: 0.03921569 (10.00/255)
+Max |pixel delta|: 0.01176473 (3.00/255)
+Mean |pixel delta|: 0.00790782
+L2 distance: 0.42371091
+Success: True

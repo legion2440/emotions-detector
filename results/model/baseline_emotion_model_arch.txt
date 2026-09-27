@@ -1,0 +1,52 @@
+Emotions Detector - CNN Architecture Report
+============================================
+
+Profile: baseline
+Best validation epoch (by val_loss): 9
+Best validation loss: 1.196751
+Best validation accuracy: 58.0683%
+
+Architecture rationale
+----------------------
+This is the first, deliberately small training iteration. It validates the
+end-to-end training pipeline before increasing model capacity. It uses three
+Conv2D + MaxPool stages and one dense layer with Dropout. No pre-trained weights
+are used and the test set is never loaded during training.
+
+Iteration history
+-----------------
+- 20260927-140238 | baseline | best val_acc=58.0683% | best val_loss=1.196751
+
+model.summary()
+---------------
+Model: "fer_baseline_cnn"
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━┓
+┃ Layer (type)                         ┃ Output Shape                ┃         Param # ┃
+┡━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━┩
+│ image (InputLayer)                   │ (None, 48, 48, 1)           │               0 │
+├──────────────────────────────────────┼─────────────────────────────┼─────────────────┤
+│ conv2d (Conv2D)                      │ (None, 48, 48, 32)          │             320 │
+├──────────────────────────────────────┼─────────────────────────────┼─────────────────┤
+│ max_pooling2d (MaxPooling2D)         │ (None, 24, 24, 32)          │               0 │
+├──────────────────────────────────────┼─────────────────────────────┼─────────────────┤
+│ conv2d_1 (Conv2D)                    │ (None, 24, 24, 64)          │          18,496 │
+├──────────────────────────────────────┼─────────────────────────────┼─────────────────┤
+│ max_pooling2d_1 (MaxPooling2D)       │ (None, 12, 12, 64)          │               0 │
+├──────────────────────────────────────┼─────────────────────────────┼─────────────────┤
+│ conv2d_2 (Conv2D)                    │ (None, 12, 12, 128)         │          73,856 │
+├──────────────────────────────────────┼─────────────────────────────┼─────────────────┤
+│ max_pooling2d_2 (MaxPooling2D)       │ (None, 6, 6, 128)           │               0 │
+├──────────────────────────────────────┼─────────────────────────────┼─────────────────┤
+│ flatten (Flatten)                    │ (None, 4608)                │               0 │
+├──────────────────────────────────────┼─────────────────────────────┼─────────────────┤
+│ dense (Dense)                        │ (None, 128)                 │         589,952 │
+├──────────────────────────────────────┼─────────────────────────────┼─────────────────┤
+│ dropout (Dropout)                    │ (None, 128)                 │               0 │
+├──────────────────────────────────────┼─────────────────────────────┼─────────────────┤
+│ emotion (Dense)                      │ (None, 7)                   │             903 │
+└──────────────────────────────────────┴─────────────────────────────┴─────────────────┘
+ Total params: 2,050,583 (7.82 MB)
+ Trainable params: 683,527 (2.61 MB)
+ Non-trainable params: 0 (0.00 B)
+ Optimizer params: 1,367,056 (5.21 MB)
+

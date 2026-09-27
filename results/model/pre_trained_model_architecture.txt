@@ -1,0 +1,70 @@
+Optional pre-trained CNN
+========================
+
+Backbone: ResNet50V2 with ImageNet weights
+Backbone input: 128x128 RGB
+Input adaptation: 48x48x1 -> resize 128x128 -> repeat grayscale to RGB
+Stage 1: frozen ImageNet backbone, train a BatchNorm + Dense(256) classifier head
+Stage 2: reload the best stage-1 checkpoint, then fine-tune the last
+         35 non-BatchNorm backbone layers at LR=1e-05
+BatchNorm policy: all backbone BatchNorm layers remain frozen during fine-tuning
+Checkpoint criterion: maximum validation accuracy
+Selected checkpoint: pretrained_stage2.keras (fine-tuned)
+
+Best stage-1 validation accuracy: 53.8658%
+Best stage-1 validation loss: 1.274890
+Best stage-2 validation accuracy: 60.2508%
+Best stage-2 validation loss: 1.146548
+
+This model is optional and does not replace final_emotion_model.keras,
+which is trained from scratch as required by the project.
+
+model.summary()
+---------------
+Model: "fer_resnet50v2_transfer"
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃ Layer (type)                  ┃ Output Shape              ┃         Param # ┃ Connected to               ┃
+┡━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━┩
+│ image (InputLayer)            │ (None, 48, 48, 1)         │               0 │ -                          │
+├───────────────────────────────┼───────────────────────────┼─────────────────┼────────────────────────────┤
+│ aug_flip (RandomFlip)         │ (None, 48, 48, 1)         │               0 │ image[0][0]                │
+├───────────────────────────────┼───────────────────────────┼─────────────────┼────────────────────────────┤
+│ aug_rotate (RandomRotation)   │ (None, 48, 48, 1)         │               0 │ aug_flip[0][0]             │
+├───────────────────────────────┼───────────────────────────┼─────────────────┼────────────────────────────┤
+│ aug_translate                 │ (None, 48, 48, 1)         │               0 │ aug_rotate[0][0]           │
+│ (RandomTranslation)           │                           │                 │                            │
+├───────────────────────────────┼───────────────────────────┼─────────────────┼────────────────────────────┤
+│ aug_zoom (RandomZoom)         │ (None, 48, 48, 1)         │               0 │ aug_translate[0][0]        │
+├───────────────────────────────┼───────────────────────────┼─────────────────┼────────────────────────────┤
+│ resize_for_backbone           │ (None, 128, 128, 1)       │               0 │ aug_zoom[0][0]             │
+│ (Resizing)                    │                           │                 │                            │
+├───────────────────────────────┼───────────────────────────┼─────────────────┼────────────────────────────┤
+│ grayscale_to_rgb              │ (None, 128, 128, 3)       │               0 │ resize_for_backbone[0][0], │
+│ (Concatenate)                 │                           │                 │ resize_for_backbone[0][0], │
+│                               │                           │                 │ resize_for_backbone[0][0]  │
+├───────────────────────────────┼───────────────────────────┼─────────────────┼────────────────────────────┤
+│ to_255 (Rescaling)            │ (None, 128, 128, 3)       │               0 │ grayscale_to_rgb[0][0]     │
+├───────────────────────────────┼───────────────────────────┼─────────────────┼────────────────────────────┤
+│ resnet50v2_preprocess         │ (None, 128, 128, 3)       │               0 │ to_255[0][0]               │
+│ (Rescaling)                   │                           │                 │                            │
+├───────────────────────────────┼───────────────────────────┼─────────────────┼────────────────────────────┤
+│ resnet50v2 (Functional)       │ (None, 4, 4, 2048)        │      23,564,800 │ resnet50v2_preprocess[0][… │
+├───────────────────────────────┼───────────────────────────┼─────────────────┼────────────────────────────┤
+│ global_average_pool           │ (None, 2048)              │               0 │ resnet50v2[0][0]           │
+│ (GlobalAveragePooling2D)      │                           │                 │                            │
+├───────────────────────────────┼───────────────────────────┼─────────────────┼────────────────────────────┤
+│ head_batch_norm               │ (None, 2048)              │           8,192 │ global_average_pool[0][0]  │
+│ (BatchNormalization)          │                           │                 │                            │
+├───────────────────────────────┼───────────────────────────┼─────────────────┼────────────────────────────┤
+│ head_dense (Dense)            │ (None, 256)               │         524,544 │ head_batch_norm[0][0]      │
+├───────────────────────────────┼───────────────────────────┼─────────────────┼────────────────────────────┤
+│ head_dropout (Dropout)        │ (None, 256)               │               0 │ head_dense[0][0]           │
+├───────────────────────────────┼───────────────────────────┼─────────────────┼────────────────────────────┤
+│ emotion (Dense)               │ (None, 7)                 │           1,799 │ head_dropout[0][0]         │
+└───────────────────────────────┴───────────────────────────┴─────────────────┴────────────────────────────┘
+ Total params: 57,291,287 (218.55 MB)
+ Trainable params: 16,595,975 (63.31 MB)
+ Non-trainable params: 7,503,360 (28.62 MB)
+ Optimizer params: 33,191,952 (126.62 MB)
+
+
