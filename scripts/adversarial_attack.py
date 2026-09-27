@@ -13,6 +13,7 @@ from common import (
     EMOTIONS,
     MODEL_DIR,
     load_fer_csv,
+    materialize_chunked_file,
     resolve_labeled_test_csv,
 )
 
@@ -97,7 +98,7 @@ def targeted_pgd(
 
 
 def save_gray(path: Path, image: np.ndarray) -> None:
-    array = np.clip(image.squeeze() * 255.0, 0, 255).astype(np.uint8)
+    array = np.rint(np.clip(image.squeeze() * 255.0, 0, 255)).astype(np.uint8)
     import cv2
 
     if not cv2.imwrite(str(path), array):
@@ -112,7 +113,12 @@ def main() -> None:
     test_path = resolve_labeled_test_csv(args.data)
     x, y = load_fer_csv(test_path, require_labels=True)
     assert y is not None
-    model = keras.models.load_model(args.model)
+    model_path = materialize_chunked_file(args.model)
+    if not model_path.is_file():
+        raise FileNotFoundError(
+            f"Model not found: {model_path}. Train it with python ./scripts/train.py"
+        )
+    model = keras.models.load_model(model_path)
 
     index, original_probs = choose_happy_example(
         model, x, y, args.happy_threshold
