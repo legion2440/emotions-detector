@@ -13,6 +13,7 @@ from tensorflow import keras
 from common import (
     EMOTIONS,
     MODEL_DIR,
+    PREPROCESSING_DIR,
     FaceDetection,
     FaceDetector,
     configure_tensorflow_memory_growth,
@@ -132,7 +133,18 @@ def main() -> None:
     print("Reading video stream ...")
     model = keras.models.load_model(args.model)
     detector = FaceDetector()
-    opened = open_capture(parse_source(args.source))
+
+    source = parse_source(args.source)
+    try:
+        opened = open_capture(source)
+    except OSError as error:
+        fallback = PREPROCESSING_DIR / "input_video.mp4"
+        if not isinstance(source, int) or not fallback.is_file():
+            raise
+        print(f"Webcam unavailable: {error}")
+        print(f"Using recorded video fallback: {fallback}")
+        opened = open_capture(fallback)
+
     capture = opened.capture
     pending = opened.first_frame
 
