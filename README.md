@@ -11,6 +11,7 @@ Real-time facial emotion recognition for the 01-edu / Tomorrow School computer-v
 - [📈 Training and TensorBoard](#-training-and-tensorboard)
 - [🎥 Video pipeline](#-video-pipeline)
 - [✨ Bonus features](#-bonus-features)
+- [📦 Large artifacts](#-large-artifacts)
 - [🧪 Verification](#-verification)
 - [📁 Project structure](#-project-structure)
 - [⚠️ Limitations](#️-limitations)
@@ -408,6 +409,24 @@ results/model/adversarial/perturbation_amplified.png
 results/model/adversarial/comparison.png
 results/model/adversarial/metrics.txt
 ```
+
+## 📦 Large artifacts
+
+The school Gitea instance has a small per-file upload limit. The mandatory
+`final_emotion_model.keras` can therefore be stored as ordered chunks:
+
+```text
+results/model/final_emotion_model.keras.part000
+results/model/final_emotion_model.keras.part001
+...
+```
+
+`predict.py` and `predict_live_stream.py` automatically reassemble the original
+`.keras` file when it is absent. The reconstructed file is ignored by Git.
+
+The recorded audit video may be committed directly when kept below the server
+limit. Intermediate training checkpoints and the large optional transfer-learning
+binary are local artifacts and can be regenerated from the committed scripts.
 
 ## 🧪 Verification
 
