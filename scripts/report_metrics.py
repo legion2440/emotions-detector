@@ -8,7 +8,13 @@ import numpy as np
 from sklearn.metrics import ConfusionMatrixDisplay, classification_report, confusion_matrix
 from tensorflow import keras
 
-from common import EMOTIONS, MODEL_DIR, load_fer_csv, resolve_labeled_test_csv
+from common import (
+    EMOTIONS,
+    MODEL_DIR,
+    load_fer_csv,
+    materialize_chunked_file,
+    resolve_labeled_test_csv,
+)
 
 
 def parse_args() -> argparse.Namespace:
@@ -28,7 +34,12 @@ def main() -> None:
     x, y = load_fer_csv(test_path, require_labels=True)
     assert y is not None
 
-    model = keras.models.load_model(args.model)
+    model_path = materialize_chunked_file(args.model)
+    if not model_path.is_file():
+        raise FileNotFoundError(
+            f"Model not found: {model_path}. Train it with python ./scripts/train.py"
+        )
+    model = keras.models.load_model(model_path)
     probabilities = model.predict(x, batch_size=256, verbose=0)
     predictions = np.argmax(probabilities, axis=1)
 
