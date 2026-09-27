@@ -17,6 +17,7 @@ from common import (
     FaceDetection,
     FaceDetector,
     configure_tensorflow_memory_growth,
+    materialize_chunked_file,
     open_capture,
     parse_source,
     preprocess_face,
@@ -125,20 +126,23 @@ def main() -> None:
         raise SystemExit("--print-interval must be positive.")
 
     configure_tensorflow_memory_growth()
-    if not args.model.is_file():
+    model_path = materialize_chunked_file(args.model)
+    if not model_path.is_file():
         raise FileNotFoundError(
-            f"Model not found: {args.model}. Train it with python ./scripts/train.py"
+            f"Model not found: {model_path}. Train it with python ./scripts/train.py"
         )
 
     print("Reading video stream ...")
-    model = keras.models.load_model(args.model)
+    model = keras.models.load_model(model_path)
     detector = FaceDetector()
 
     source = parse_source(args.source)
     try:
         opened = open_capture(source)
     except OSError as error:
-        fallback = PREPROCESSING_DIR / "input_video.mp4"
+        fallback = materialize_chunked_file(
+            PREPROCESSING_DIR / "input_video.mp4"
+        )
         if not isinstance(source, int) or not fallback.is_file():
             raise
         print(f"Webcam unavailable: {error}")
