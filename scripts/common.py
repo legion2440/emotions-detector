@@ -616,6 +616,23 @@ def preprocess_face(
     return resized, tensor
 
 
+def fit_preview_frame(
+    frame: np.ndarray,
+    *,
+    max_width: int = 1600,
+    max_height: int = 900,
+) -> np.ndarray:
+    height, width = frame.shape[:2]
+    scale = min(1.0, max_width / width, max_height / height)
+    if scale >= 1.0:
+        return frame
+    return cv2.resize(
+        frame,
+        (max(1, int(width * scale)), max(1, int(height * scale))),
+        interpolation=cv2.INTER_AREA,
+    )
+
+
 def _draw_label(
     frame: np.ndarray,
     text: str,
