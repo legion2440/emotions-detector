@@ -32,14 +32,17 @@ The mandatory model is trained from scratch: no pre-trained weights are used.
 
 Iteration 1 is available through --profile baseline and intentionally uses a
 small three-block CNN. Its purpose is to validate the FER CSV loader, training
-loop, validation split, checkpointing and evaluation pipeline.
+loop, validation split, checkpointing and evaluation pipeline. The baseline
+also exposes the generalization gap that appears once training continues past
+its best validation checkpoint.
 
 The final profile increases representational capacity with four two-convolution
 blocks (64/128/256/256 filters), Batch Normalization, L2 regularization and
 progressively stronger Dropout. Training-only horizontal flip, small rotation,
 translation and zoom augmentations improve robustness while preserving the
-48x48 grayscale input expected by FER. A 256-unit dense head feeds the seven
-class softmax output.
+48x48 grayscale input expected by FER. These regularization choices were added
+after the baseline plateaued on validation while training performance kept
+improving. A 256-unit dense head feeds the seven class softmax output.
 
 EarlyStopping monitors validation loss and restores the best weights.
 ReduceLROnPlateau lowers the learning rate when validation loss stalls.
