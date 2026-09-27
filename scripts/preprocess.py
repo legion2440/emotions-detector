@@ -10,6 +10,7 @@ import cv2
 from common import (
     PREPROCESSING_DIR,
     FaceDetector,
+    fit_preview_frame,
     open_capture,
     parse_source,
     preprocess_face,
@@ -163,7 +164,10 @@ def main() -> None:
                     2,
                     cv2.LINE_AA,
                 )
-                cv2.imshow("Emotions detector - preprocessing audit", preview)
+                cv2.imshow(
+                    "Emotions detector - preprocessing audit",
+                    fit_preview_frame(preview),
+                )
                 if cv2.waitKey(1) & 0xFF == ord("q"):
                     break
 
