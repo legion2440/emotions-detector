@@ -203,6 +203,9 @@ python ./scripts/train.py --profile final
 ```
 
 The final run stopped at epoch 61 and restored the best checkpoint from epoch 49.
+The learning curves mark epoch 49 explicitly. Training accuracy continued to rise,
+but validation loss stayed close to its minimum; the restored checkpoint avoids
+using later weights and limits the generalization gap.
 
 Generated artifacts:
 
@@ -368,13 +371,17 @@ Best stage-2 val_accuracy: 60.25%
 Test accuracy: 60.39%
 ```
 
-Artifacts:
+Committed artifacts:
 
 ```text
-results/model/pre_trained_model.keras
 results/model/pre_trained_model_architecture.txt
 results/model/pre_trained_learning_curves.png
+results/model/pre_trained_training_history.json
 ```
+
+The optional `pre_trained_model.keras` binary is about 220 MB in the tested
+environment, so it is not committed to the school Gitea repository. Regenerate
+it with `python ./scripts/train_pretrained.py` before evaluating that optional model.
 
 ### Adversarial Happy → Sad
 
@@ -421,12 +428,23 @@ results/model/final_emotion_model.keras.part001
 ...
 ```
 
-`predict.py` and `predict_live_stream.py` automatically reassemble the original
-`.keras` file when it is absent. The reconstructed file is ignored by Git.
+Large required artifacts are stored as ordered `.partNNN` chunks. The shared
+runtime helper reassembles the original file when it is absent. This is used
+directly by `predict.py`, `predict_live_stream.py`, `report_metrics.py` and
+`adversarial_attack.py`; `preprocess.py` gets the same behavior through
+`open_capture()`.
 
-The recorded audit video may be committed directly when kept below the server
-limit. Intermediate training checkpoints and the large optional transfer-learning
-binary are local artifacts and can be regenerated from the committed scripts.
+The recorded audit video is also stored as:
+
+```text
+results/preprocessing_test/input_video.mp4.part000
+results/preprocessing_test/input_video.mp4.part001
+...
+```
+
+The reconstructed `.keras` and `.mp4` files are ignored by Git. Intermediate
+training checkpoints and the large optional transfer-learning binary are local
+artifacts and can be regenerated from the committed scripts.
 
 ## 🧪 Verification
 
@@ -467,9 +485,13 @@ If webcam `0` is not available, the command automatically falls back to
 Optional transfer model:
 
 ```bash
+python ./scripts/train_pretrained.py
 python ./scripts/predict.py \
   --model results/model/pre_trained_model.keras
 ```
+
+The transfer-learning binary is generated locally and is not committed because
+it exceeds the school Gitea per-file limit.
 
 Optional adversarial test:
 
@@ -491,15 +513,18 @@ emotions-detector/
 │   │   ├── classification_report.txt
 │   │   ├── confident_mistakes.png
 │   │   ├── confusion_matrix.png
-│   │   ├── final_emotion_model.keras
+│   │   ├── final_emotion_model.keras.part000
+│   │   ├── final_emotion_model.keras.part001
+│   │   ├── ...
 │   │   ├── final_emotion_model_arch.txt
 │   │   ├── learning_curves.png
-│   │   ├── pre_trained_model.keras
 │   │   ├── pre_trained_model_architecture.txt
 │   │   ├── pre_trained_learning_curves.png
 │   │   └── tensorboard.png
 │   ├── preprocessing_test/
-│   │   ├── input_video.mp4
+│   │   ├── input_video.mp4.part000
+│   │   ├── input_video.mp4.part001
+│   │   ├── ...
 │   │   ├── image0.png
 │   │   └── ...
 │   └── tensorboard/
