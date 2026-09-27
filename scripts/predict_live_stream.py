@@ -224,7 +224,7 @@ def main() -> None:
                     fps=fps_ema,
                     show_top3=True,
                 )
-                cv2.imshow("Emotions detector", rendered)
+                cv2.imshow("Emotions detector", fit_preview_frame(rendered))
                 if cv2.waitKey(1) & 0xFF == ord("q"):
                     break
 
