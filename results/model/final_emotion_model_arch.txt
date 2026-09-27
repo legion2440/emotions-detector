@@ -25,6 +25,20 @@ EarlyStopping monitors validation loss and restores the best weights.
 ReduceLROnPlateau lowers the learning rate when validation loss stalls.
 TensorBoard records every run. The test set is never loaded by this script.
 
+Observed iteration results
+--------------------------
+The baseline reached 58.07% best validation accuracy and 54.53% test accuracy.
+Its best validation loss occurred at epoch 9 while training continued to epoch
+21, showing the overfitting tendency of the smaller unregularized model.
+
+The final model reached 66.75% best validation accuracy and 66.38% test
+accuracy. Its best validation-loss checkpoint was epoch 49. Training continued
+to epoch 61 because EarlyStopping patience was 12, then the epoch-49 weights
+were restored. Train accuracy continued rising to about 74.8% while validation
+accuracy stayed around 66%, but validation loss remained near its minimum
+(~1.09). This is a moderate generalization gap rather than validation-loss
+collapse, and the restored checkpoint prevents using later weights.
+
 Iteration history
 -----------------
 - 20260927-140238 | baseline | best val_acc=58.0683% | best val_loss=1.196751
